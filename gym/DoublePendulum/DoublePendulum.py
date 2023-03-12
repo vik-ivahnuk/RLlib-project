@@ -1,15 +1,20 @@
+from time import sleep, time
+import gym
+from gym import spaces, logger
 import pygame
 import math
 import numpy as np
+from gym.utils import seeding
 
 
-class DoublePendulum:
-    def __init__(self, width, height, L1, L2, m1, m2, theta1, theta2):
+class DoublePendulumEnv(gym.Env):
+    def __init__(self):
+        self.last_rew = None
         self.FPS = 60
         self.dt = 1 / self.FPS
 
-        self.width = width
-        self.height = height
+        self.width = 800
+        self.height = 600
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
         self.RED = (255, 0, 0)
@@ -18,22 +23,41 @@ class DoublePendulum:
         self.clock = pygame.time.Clock()
         self.screen = None
 
-        self.x = width // 2
-        self.y = height // 2
-        self.L1 = L1
-        self.L2 = L2
-        self.m1 = m1
-        self.m2 = m2
-        self.theta1 = theta1
-        self.theta2 = theta2
-        self.angular_velocity1 = 0
-        self.angular_velocity2 = 0
+        self.x = self.width // 2
+        self.y = self.height // 2
+        self.L1 = 100
+        self.L2 = 130
+        self.D = 2 * (self.L1 + self.L2)
+        self.m1 = 0.1
+        self.m2 = 0.2
         self.g = 98.1
 
         self.steps_count = 0
+        self._init_param()
+
+        self.high_obs = np.array([1, 1, 1, 1, 1, 1], dtype=np.float32)
+        self.observation_space = spaces.Box(low=-self.high_obs, high=self.high_obs, dtype=np.float32)
+
+        self.action_space = spaces.MultiDiscrete([3, 3])
+
+    def _init_param(self):
+        self.steps_count = 0
+        self.theta1 = 0
+        self.theta2 = 0
+        self.angular_velocity1 = 0
+        self.angular_velocity2 = 0
+        self._calc_coordinates()
+
+        self.last_rew = -1
+
+    def seed(self, seed=int(time())):
+        self.np_random, seed = seeding.np_random(seed)
+        return [seed]
 
     def step(self, action):
         self.steps_count += 1
+
+        assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         denominator = (2 * self.m1 + self.m2 - self.m2 * math.cos(2 * self.theta1 - 2 * self.theta2))
 
@@ -69,13 +93,23 @@ class DoublePendulum:
         self.theta2 += self.angular_velocity2 * self.dt
 
         obs = self._observation()
-        done = abs(obs[0] + 1) < 0.001 and abs(obs[2] + 1) < 0.001
-        reward = 0
         info = {}
 
-        return obs, done, reward, info
+        self._calc_coordinates()
+        distance = math.sqrt((self.x2 - self.x) ** 2 + (self.y2 - (self.y - self.L1 - self.L2)) ** 2)
+        done = abs(distance) < 0.1
+        # reward = self.D - distance
+        # if reward > self.last_rew:
+        #     self.last_rew = reward
+        # else:
+        #     reward = 0
+        # reward = -(np.pi - (abs(self.theta1) % np.pi)**2 + 0.1 * self.angular_velocity1**2 +
+        #            (np.pi - abs(self.theta2) % np.pi)**2 + 0.1 * self.angular_velocity2**2)
 
-    def render(self):
+        reward = abs(self.theta1 - self.theta2)
+        return obs, reward, done, info
+
+    def render(self, mode='human'):
         if self.screen is None:
             pygame.init()
             self.screen = pygame.display.set_mode(
@@ -83,60 +117,76 @@ class DoublePendulum:
             )
         self.screen.fill(self.WHITE)
         pygame.display.set_caption("Frame " + str(self.steps_count))
-        x1 = self.x + self.L1 * math.sin(self.theta1)
-        y1 = self.y + self.L1 * math.cos(self.theta1)
-        x2 = x1 + self.L2 * math.sin(self.theta2)
-        y2 = y1 + self.L2 * math.cos(self.theta2)
 
-        pygame.draw.line(self.screen, self.RED, (self.x, self.y), (x1, y1), 5)
-        pygame.draw.line(self.screen, self.RED, (x1, y1), (x2, y2), 5)
-        pygame.draw.circle(self.screen, self.BLACK, (int(x1), int(y1)), 10)
-        pygame.draw.circle(self.screen, self.BLACK, (int(x2), int(y2)), 10)
+        pygame.draw.line(self.screen, self.RED, (self.x, self.y), (self.x1, self.y1), 5)
+        pygame.draw.line(self.screen, self.RED, (self.x1, self.y1), (self.x2, self.y2), 5)
+        pygame.draw.circle(self.screen, self.BLACK, (int(self.x1), int(self.y1)), 10)
+        pygame.draw.circle(self.screen, self.BLACK, (int(self.x2), int(self.y2)), 10)
 
         pygame.display.flip()
         self.clock.tick(self.FPS)
 
     def reset(self):
-        pass
+        self._init_param()
+        return self._observation()
+
+    def _calc_coordinates(self):
+        self.x1 = self.x + self.L1 * math.sin(self.theta1)
+        self.y1 = self.y + self.L1 * math.cos(self.theta1)
+        self.x2 = self.x1 + self.L2 * math.sin(self.theta2)
+        self.y2 = self.y1 + self.L2 * math.cos(self.theta2)
 
     def _observation(self):
         return np.array([
             math.cos(self.theta1),
             math.sin(self.theta1),
             math.cos(self.theta2),
-            math.cos(self.theta2),
+            math.sin(self.theta2),
             np.clip(self.angular_velocity1 / (5 * np.pi), -1, 1),
             np.clip(self.angular_velocity2 / (5 * np.pi), -1, 1)
         ], dtype=np.float32)
 
 
-double_pendulum = DoublePendulum(800, 600, 100, 130, 0.1, 0.2, 0, 0)
-
-q = [0, 0]
-running = True
-double_pendulum.render()
-while running:
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
-                q[0] = 1
-            elif event.key == pygame.K_d:
-                q[0] = 2
-            elif event.key == pygame.K_s:
-                q[0] = 0
-            elif event.key == pygame.K_q:
-                q[1] = 1
-            elif event.key == pygame.K_e:
-                q[1] = 2
-            elif event.key == pygame.K_w:
-                q[1] = 0
-
-    _, is_done, _, _ = double_pendulum.step(q)
+if __name__ == "__main__":
+    double_pendulum = DoublePendulumEnv()
+    q = [0, 0]
+    running = True
     double_pendulum.render()
+    while running:
 
-    if is_done:
-        running = False
-        print("kek")
+        reset = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_a:
+                    q[0] = 1
+                    print(" <-- top")
+                elif event.key == pygame.K_d:
+                    q[0] = 2
+                    print(" --> top")
+                elif event.key == pygame.K_s:
+                    q[0] = 0
+                    print(" 0 top")
+                elif event.key == pygame.K_q:
+                    q[1] = 1
+                    print(" <-- bottom")
+                elif event.key == pygame.K_e:
+                    q[1] = 2
+                    print(" --> bottom")
+                elif event.key == pygame.K_w:
+                    q[1] = 0
+                    print(" 0 bottom")
+                elif event.key == pygame.K_r:
+                    reset = True
+                    q = [0, 0]
+
+        if reset:
+            double_pendulum.reset()
+            is_done = False
+        else:
+            _, _, is_done, _ = double_pendulum.step(q)
+        double_pendulum.render()
+
+        if is_done:
+            running = False

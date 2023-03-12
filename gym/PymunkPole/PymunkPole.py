@@ -11,7 +11,7 @@ from pymunk.vec2d import Vec2d
 from gym import spaces, logger
 from gym.utils import seeding
 
-import cartpole_utils as utils
+from . import cartpole_utils as utils
 
 
 class PymunkCartPoleEnv(gym.Env):
