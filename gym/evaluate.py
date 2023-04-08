@@ -12,7 +12,7 @@ from ray.rllib.models import ModelCatalog
 from ray.tune import register_env
 
 from PymunkPole import PymunkPole
-from models import CartpoleModel
+from models import DoublePendulumModelV1
 
 register(
     id='PymunkPole-v0',
@@ -21,7 +21,7 @@ register(
 )
 ray.init(include_dashboard=False)
 register_env("CP", lambda _: PymunkPole.PymunkCartPoleEnv())
-ModelCatalog.register_custom_model("CartpoleModel", CartpoleModel)
+ModelCatalog.register_custom_model("CartpoleModel", DoublePendulumModelV1)
 trainer = Algorithm.from_checkpoint('cartpole_checkpoints/checkpoint_000012')
 CartpoleEnv = gym.make("PymunkPole-v0")
 obs = CartpoleEnv.reset()

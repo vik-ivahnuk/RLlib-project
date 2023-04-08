@@ -1,3 +1,4 @@
+import sys
 from time import sleep, time
 import gym
 from gym import spaces, logger
@@ -31,6 +32,7 @@ class DoublePendulumEnv(gym.Env):
         self.m1 = 0.1
         self.m2 = 0.2
         self.g = 98.1
+        self.max_av = 5 * np.pi
 
         self.steps_count = 0
         self._init_param()
@@ -96,18 +98,22 @@ class DoublePendulumEnv(gym.Env):
         info = {}
 
         self._calc_coordinates()
-        distance = math.sqrt((self.x2 - self.x) ** 2 + (self.y2 - (self.y - self.L1 - self.L2)) ** 2)
-        done = abs(distance) < 0.1
-        # reward = self.D - distance
-        # if reward > self.last_rew:
-        #     self.last_rew = reward
-        # else:
-        #     reward = 0
-        # reward = -(np.pi - (abs(self.theta1) % np.pi)**2 + 0.1 * self.angular_velocity1**2 +
-        #            (np.pi - abs(self.theta2) % np.pi)**2 + 0.1 * self.angular_velocity2**2)
 
-        reward = abs(self.theta1 - self.theta2)
-        return obs, reward, done, info
+        distance = math.sqrt((self.x2 - self.x) ** 2 + (self.y2 - (self.y - self.L1 - self.L2)) ** 2)
+
+        done = abs(distance) < 1
+        reward = self.D - distance
+
+        if done:
+            return obs, (self.D * 2500 / self.steps_count) ** 2, done, info
+
+        if reward > self.last_rew:
+            self.last_rew = reward
+            print(reward)
+        else:
+            reward = 0
+
+        return obs, reward / 100, done, info
 
     def render(self, mode='human'):
         if self.screen is None:
@@ -117,6 +123,10 @@ class DoublePendulumEnv(gym.Env):
             )
         self.screen.fill(self.WHITE)
         pygame.display.set_caption("Frame " + str(self.steps_count))
+
+        for ev in pygame.event.get():
+            if ev.type == pygame.QUIT:
+                sys.exit(0)
 
         pygame.draw.line(self.screen, self.RED, (self.x, self.y), (self.x1, self.y1), 5)
         pygame.draw.line(self.screen, self.RED, (self.x1, self.y1), (self.x2, self.y2), 5)
@@ -142,8 +152,8 @@ class DoublePendulumEnv(gym.Env):
             math.sin(self.theta1),
             math.cos(self.theta2),
             math.sin(self.theta2),
-            np.clip(self.angular_velocity1 / (5 * np.pi), -1, 1),
-            np.clip(self.angular_velocity2 / (5 * np.pi), -1, 1)
+            np.clip(self.angular_velocity1 / self.max_av, -1, 1),
+            np.clip(self.angular_velocity2 / self.max_av, -1, 1)
         ], dtype=np.float32)
 
 
@@ -161,22 +171,19 @@ if __name__ == "__main__":
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
                     q[0] = 1
-                    print(" <-- top")
-                elif event.key == pygame.K_d:
-                    q[0] = 2
-                    print(" --> top")
+                    # print(" --> top")
                 elif event.key == pygame.K_s:
                     q[0] = 0
-                    print(" 0 top")
+                    # print(" 0 top")
                 elif event.key == pygame.K_q:
                     q[1] = 1
-                    print(" <-- bottom")
+                    # print(" <-- bottom")
                 elif event.key == pygame.K_e:
                     q[1] = 2
-                    print(" --> bottom")
+                    # print(" --> bottom")
                 elif event.key == pygame.K_w:
                     q[1] = 0
-                    print(" 0 bottom")
+                    # print(" 0 bottom")
                 elif event.key == pygame.K_r:
                     reset = True
                     q = [0, 0]

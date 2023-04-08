@@ -1,12 +1,14 @@
 import gym
-import tensorflow as tf
 from gym import register
+import pygame
+
+import tensorflow as tf
 from ray.rllib import TFPolicy
 from ray.rllib.models import ModelCatalog
 from ray.tune import register_env
+
 from DoublePendulum.DoublePendulum import DoublePendulumEnv
-from models import CartpoleModel
-from model import DoublePendulumModel
+from models import DoublePendulumModelV1
 
 tf.compat.v1.disable_eager_execution()
 
@@ -17,7 +19,7 @@ register(
 )
 
 register_env("D", lambda _: DoublePendulumEnv())
-ModelCatalog.register_custom_model("CartpoleModel", CartpoleModel)
+ModelCatalog.register_custom_model("DoublePendulumModelV1", DoublePendulumModelV1)
 my_restored_policy = TFPolicy.from_checkpoint("policy_checkpoint")
 CartpoleEnv = gym.make("DoublePendulum-v0")
 obs = CartpoleEnv.reset()

@@ -5,9 +5,9 @@ from ray.rllib.models.tf import TFModelV2
 import tensorflow as tf
 
 
-class CartpoleModel(TFModelV2, ABC):
+class DoublePendulumModelV1(TFModelV2, ABC):
     def __init__(self, obs_space, action_space, num_outputs, model_config, name):
-        super(CartpoleModel, self).__init__(obs_space, action_space, num_outputs, model_config, name)
+        super(DoublePendulumModelV1, self).__init__(obs_space, action_space, num_outputs, model_config, name)
         self._value_out = None
         input_layer = tf.keras.layers.Input(shape=obs_space.shape, name="observations")
         hidden_layer = input_layer
