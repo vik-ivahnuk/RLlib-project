@@ -18,9 +18,9 @@ register(
     max_episode_steps=10000
 )
 
-register_env("D", lambda _: DoublePendulumEnv())
+register_env("DP", lambda _: DoublePendulumEnv())
 ModelCatalog.register_custom_model("DoublePendulumModelV1", DoublePendulumModelV1)
-my_restored_policy = TFPolicy.from_checkpoint("policy_checkpoint")
+my_restored_policy = TFPolicy.from_checkpoint("policy_checkpoint_v1")
 CartpoleEnv = gym.make("DoublePendulum-v0")
 obs = CartpoleEnv.reset()
 cur_action = None

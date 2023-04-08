@@ -105,11 +105,11 @@ class DoublePendulumEnv(gym.Env):
         reward = self.D - distance
 
         if done:
-            return obs, (self.D * 2500 / self.steps_count) ** 2, done, info
+            rew = (self.D * 2500 / self.steps_count) ** 2
+            return obs, rew, done, info
 
         if reward > self.last_rew:
             self.last_rew = reward
-            print(reward)
         else:
             reward = 0
 
