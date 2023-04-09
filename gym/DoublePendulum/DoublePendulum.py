@@ -50,7 +50,7 @@ class DoublePendulumEnv(gym.Env):
         self.angular_velocity2 = 0
         self._calc_coordinates()
 
-        self.energy = 0
+        self.zero_rew = math.exp(-1)
         self.last_rew = -1
 
     def seed(self, seed=int(time())):
@@ -110,18 +110,14 @@ class DoublePendulumEnv(gym.Env):
 
         reward = self.D - distance
 
-        # cur_energy = (self.m1 * (self.angular_velocity1 * self.L1) ** 2 +
-        #               self.m2 * (self.angular_velocity2 * self.L2) ** 2) / 2
-        # cur_energy += (self.m1 * (self.y1 - self.L1 - self.L2) + self.m1 * (self.y2 - self.L2)) * self.g
-        # print(cur_energy)
-
-
         if reward > self.last_rew:
             self.last_rew = reward
         else:
             reward = 0
 
-        return obs, reward / 100, done, info
+        # reward = math.exp(-distance / self.D) - self.zero_rew
+
+        return obs, reward/100, done, info
 
     def render(self, mode='human'):
         if self.screen is None:

@@ -43,9 +43,9 @@ def create_my_env():
 env_creator = lambda config: create_my_env()
 ray.init(include_dashboard=False)
 register_env("DP", env_creator)
-ModelCatalog.register_custom_model("DoublePendulumModelV1", DoublePendulumModelV1)
+ModelCatalog.register_custom_model("DoublePendulumModelV5", DoublePendulumModelV5)
 trainer = ppo.PPOTrainer(env="DP",
-                         config={"model": {"custom_model": "DoublePendulumModelV1"},
+                         config={"model": {"custom_model": "DoublePendulumModelV5"},
                                  'create_env_on_driver': True
                                  }
                          )
@@ -72,18 +72,18 @@ while True:
 
     print("avg. reward:", cur_reward, "episode len:", cur_len)
 
-trainer.save("training_models/pendulum_checkpoints_v1")
+trainer.save("training_models/pendulum_checkpoints_v5")
 default_policy = trainer.get_policy(policy_id="default_policy")
-default_policy.export_checkpoint("training_models/policy_checkpoint_v1")
+default_policy.export_checkpoint("training_models/policy_checkpoint_v5")
 
 save_graph_train('Reward',
                  reward_episodes,
-                 'diagrams/reward_v1'
+                 'diagrams/reward_v5'
                  )
 
 save_graph_train('Length',
                  len_episodes,
-                 'diagrams/mean_lens_v1'
+                 'diagrams/mean_lens_v5'
                  )
 
 ray.shutdown()

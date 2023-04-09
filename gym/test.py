@@ -23,8 +23,8 @@ register(
 )
 
 register_env("DP", lambda _: DoublePendulumEnv())
-ModelCatalog.register_custom_model("DoublePendulumModelV1", DoublePendulumModelV1)
-my_restored_policy = TFPolicy.from_checkpoint("training_models/policy_checkpoint_v1")
+ModelCatalog.register_custom_model("DoublePendulumModelV2", DoublePendulumModelV2)
+my_restored_policy = TFPolicy.from_checkpoint("training_models/policy_checkpoint_v2")
 CartpoleEnv = gym.make("DoublePendulum-v0")
 obs = CartpoleEnv.reset()
 cur_action = None
