@@ -9,7 +9,9 @@ import matplotlib.pyplot as plt
 
 from models import DoublePendulumModelV1
 from models import DoublePendulumModelV2
+from models import DoublePendulumModelV3
 from models import DoublePendulumModelV4
+from models import DoublePendulumModelV5
 
 
 ready_to_exit = False
@@ -20,11 +22,10 @@ def press_key_exit(_q):
     ready_to_exit = True
 
 
-def save_graph_train(y_label, title, values, path):
+def save_graph_train(y_label, values, path):
     plt.figure()
     x = range(1, len(values) + 1)
     plt.plot(x, values)
-    plt.title(title)
     plt.xlabel('Episode')
     plt.ylabel(y_label)
     plt.savefig(path)
@@ -42,9 +43,9 @@ def create_my_env():
 env_creator = lambda config: create_my_env()
 ray.init(include_dashboard=False)
 register_env("DP", env_creator)
-ModelCatalog.register_custom_model("DoublePendulumModelV2", DoublePendulumModelV2)
+ModelCatalog.register_custom_model("DoublePendulumModelV1", DoublePendulumModelV1)
 trainer = ppo.PPOTrainer(env="DP",
-                         config={"model": {"custom_model": "DoublePendulumModelV2"},
+                         config={"model": {"custom_model": "DoublePendulumModelV1"},
                                  'create_env_on_driver': True
                                  }
                          )
@@ -71,18 +72,18 @@ while True:
 
     print("avg. reward:", cur_reward, "episode len:", cur_len)
 
-trainer.save("pendulum_checkpoints_v2")
+trainer.save("training_models/pendulum_checkpoints_v1")
 default_policy = trainer.get_policy(policy_id="default_policy")
-default_policy.export_checkpoint("policy_checkpoint_v2")
+default_policy.export_checkpoint("training_models/policy_checkpoint_v1")
 
 save_graph_train('Reward',
-                 'average rewards a neural network with 3 hidden layers of 256 neurons',
-                 reward_episodes, 'diagrams/reward_v2'
+                 reward_episodes,
+                 'diagrams/reward_v1'
                  )
 
 save_graph_train('Length',
-                 'average of episodes for a neural network with 3 hidden layers of 256 neurons',
-                 len_episodes, 'diagrams/mean_lens_v2'
+                 len_episodes,
+                 'diagrams/mean_lens_v1'
                  )
 
 ray.shutdown()

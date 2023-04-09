@@ -12,7 +12,7 @@ class DoublePendulumModelV1(TFModelV2, ABC):
         input_layer = tf.keras.layers.Input(shape=obs_space.shape, name="observations")
         hidden_layer = input_layer
         for i in range(3):
-            hidden_layer = tf.keras.layers.Dense(256, activation='tanh',
+            hidden_layer = tf.keras.layers.Dense(64, activation='tanh',
                                                  kernel_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001),
                                                  bias_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001))(
                 hidden_layer)
@@ -35,7 +35,30 @@ class DoublePendulumModelV2(TFModelV2, ABC):
         input_layer = tf.keras.layers.Input(shape=obs_space.shape, name="observations")
         hidden_layer = input_layer
         for i in range(3):
-            hidden_layer = tf.keras.layers.Dense(64, activation='tanh',
+            hidden_layer = tf.keras.layers.Dense(128, activation='tanh',
+                                                 kernel_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001),
+                                                 bias_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001))(
+                hidden_layer)
+        output_layer = tf.keras.layers.Dense(num_outputs)(hidden_layer)
+        value_layer = tf.keras.layers.Dense(1)(hidden_layer)
+        self.base_model = tf.keras.Model(input_layer, [output_layer, value_layer])
+
+    def forward(self, input_dict, state, seq_lens):
+        model_out, self._value_out = self.base_model(input_dict["obs"])
+        return model_out, state
+
+    def value_function(self):
+        return tf.reshape(self._value_out, [-1])
+
+
+class DoublePendulumModelV3(TFModelV2, ABC):
+    def __init__(self, obs_space, action_space, num_outputs, model_config, name):
+        super(DoublePendulumModelV3, self).__init__(obs_space, action_space, num_outputs, model_config, name)
+        self._value_out = None
+        input_layer = tf.keras.layers.Input(shape=obs_space.shape, name="observations")
+        hidden_layer = input_layer
+        for i in range(3):
+            hidden_layer = tf.keras.layers.Dense(256, activation='tanh',
                                                  kernel_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001),
                                                  bias_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001))(
                 hidden_layer)
@@ -57,7 +80,30 @@ class DoublePendulumModelV4(TFModelV2, ABC):
         self._value_out = None
         input_layer = tf.keras.layers.Input(shape=obs_space.shape, name="observations")
         hidden_layer = input_layer
-        for i in range(6):
+        for i in range(2):
+            hidden_layer = tf.keras.layers.Dense(64, activation='tanh',
+                                                 kernel_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001),
+                                                 bias_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001))(
+                hidden_layer)
+        output_layer = tf.keras.layers.Dense(num_outputs)(hidden_layer)
+        value_layer = tf.keras.layers.Dense(1)(hidden_layer)
+        self.base_model = tf.keras.Model(input_layer, [output_layer, value_layer])
+
+    def forward(self, input_dict, state, seq_lens):
+        model_out, self._value_out = self.base_model(input_dict["obs"])
+        return model_out, state
+
+    def value_function(self):
+        return tf.reshape(self._value_out, [-1])
+
+
+class DoublePendulumModelV5(TFModelV2, ABC):
+    def __init__(self, obs_space, action_space, num_outputs, model_config, name):
+        super(DoublePendulumModelV5, self).__init__(obs_space, action_space, num_outputs, model_config, name)
+        self._value_out = None
+        input_layer = tf.keras.layers.Input(shape=obs_space.shape, name="observations")
+        hidden_layer = input_layer
+        for i in range(2):
             hidden_layer = tf.keras.layers.Dense(256, activation='tanh',
                                                  kernel_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001),
                                                  bias_regularizer=tf.keras.regularizers.L1L2(l1=0.01, l2=0.0001))(
