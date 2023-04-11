@@ -175,19 +175,19 @@ if __name__ == "__main__":
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
                     q[0] = 1
-                    # print(" --> top")
+                    print(" --> top")
                 elif event.key == pygame.K_s:
                     q[0] = 0
-                    # print(" 0 top")
+                    print(" 0 top")
                 elif event.key == pygame.K_q:
                     q[1] = 1
-                    # print(" <-- bottom")
+                    print(" <-- bottom")
                 elif event.key == pygame.K_e:
                     q[1] = 2
-                    # print(" --> bottom")
+                    print(" --> bottom")
                 elif event.key == pygame.K_w:
                     q[1] = 0
-                    # print(" 0 bottom")
+                    print(" 0 bottom")
                 elif event.key == pygame.K_r:
                     reset = True
                     q = [0, 0]
