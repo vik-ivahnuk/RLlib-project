@@ -58,7 +58,7 @@ class DoublePendulumEnvV2(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _inner_step(self, action):
+    def inner_step(self, action):
         self.steps_count += 1
 
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
@@ -121,12 +121,11 @@ class DoublePendulumEnvV2(gym.Env):
     def step(self, action):
         obs, reward, done, info = None, None, None, None
         for _ in range(10):
-            obs, reward, done, info = self._inner_step(action)
+            obs, reward, done, info = self.inner_step(action)
             if self.vis:
                 self.render()
             if done:
                 break
-
         return obs, reward, done, info
 
     def render(self, mode='human'):
@@ -185,6 +184,9 @@ if __name__ == "__main__":
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
                     q[0] = 1
+                    print(" <-- top")
+                elif event.key == pygame.K_d:
+                    q[0] = 2
                     print(" --> top")
                 elif event.key == pygame.K_s:
                     q[0] = 0
@@ -206,7 +208,6 @@ if __name__ == "__main__":
             double_pendulum.reset()
             is_done = False
         else:
-            _, _, is_done, _ = double_pendulum.step(q)
+            _, _, is_done, _ = double_pendulum.inner_step(q)
+        double_pendulum.render()
 
-        if is_done:
-            running = False
