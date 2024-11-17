@@ -7,7 +7,7 @@ import math
 import numpy as np
 from gym.utils import seeding
 
-
+# class responsible for rendering and physical modeling of a double pendulum
 class DoublePendulumEnvV2(gym.Env):
     def __init__(self, visualization):
         self.vis = visualization
