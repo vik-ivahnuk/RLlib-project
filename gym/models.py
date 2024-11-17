@@ -4,7 +4,7 @@ from ray.rllib.models.tf import TFModelV2
 
 import tensorflow as tf
 
-
+# neural network models for training
 class DoublePendulumModelV1(TFModelV2, ABC):
     def __init__(self, obs_space, action_space, num_outputs, model_config, name):
         super(DoublePendulumModelV1, self).__init__(obs_space, action_space, num_outputs, model_config, name)
