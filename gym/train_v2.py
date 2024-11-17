@@ -14,6 +14,9 @@ from models import DoublePendulumModelV4
 from models import DoublePendulumModelV5
 
 
+
+# neural network reinforcement learning
+
 ready_to_exit = False
 
 
